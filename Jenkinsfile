@@ -1,13 +1,14 @@
 pipeline {
-    agent {
-        // Specify where pipeline will execute
-        docker {
-            image 'python:3.13-slim'  // execution environment
-        }
-    }
+    agent any  // Use any available agent
     
     stages {
         stage('Setup') {
+            agent {
+                docker {
+                    image 'python:3.13-slim'  // Use Python 3.13 slim image for this stage
+                    reuseNode true  // Run container on the same node as the pipeline to share workspace
+                }
+            }
             steps {
                 // Install Python dependencies
                 sh 'pip install -r requirements.txt'  // pip install packages from requirements.txt
@@ -15,6 +16,12 @@ pipeline {
         }
         
         stage('Test') {
+            agent {
+                docker {
+                    image 'python:3.13-slim'  // Use Python 3.13 slim image for this stage
+                    reuseNode true  // Run container on the same node as the pipeline to share workspace
+                }
+            }
             steps {
                 // Run the tests
                 sh 'python -m pytest tests/ --junitxml=test-results.xml'  // Runs pytest and generates XML output
