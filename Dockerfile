@@ -15,5 +15,5 @@ COPY tests/ ./tests/
 # Set ENV variables
 ENV PYTHONPATH=/app
 
-# Run the calculator tests by default and output to JUnit XML
-CMD ["python", "-m", "pytest", "tests/", "--junitxml=test-results.xml"]
+# Run the app 
+CMD ["python", "app/main.py"]

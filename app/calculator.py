@@ -1,6 +1,6 @@
 class Calculator:
     """
-    A simple calculator for basic arithmetic operations
+    A simple calculator
     """
     
     def add(self, a, b):

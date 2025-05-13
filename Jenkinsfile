@@ -18,6 +18,7 @@ pipeline {
             }
             post {
                 always {
+                    // Archive test results
                     junit 'test-results.xml'
                 }
                 failure {
@@ -25,7 +26,8 @@ pipeline {
                 }
             }
         }
-        
+
+
         stage('Build Docker Image') {
             steps {
                 // Build Docker image for calculator app
