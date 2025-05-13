@@ -10,7 +10,11 @@ services:
 
   # Jenkins service for CI/CD
   jenkins:
-    image: jenkins/jenkins:lts  # Use the official Jenkins LTS image
+    # image: jenkins/jenkins:lts  # Use the official Jenkins LTS image
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
+    container_name: jenkins  # Name of the container
     privileged: true  # allows extended privileges
     user: root  # Runs Jenkins as a root
     ports:
@@ -20,7 +24,8 @@ services:
       - jenkins_home:/var/jenkins_home  # Persists Jenkins data using a named volume
       - /var/run/docker.sock:/var/run/docker.sock  # Gives access to the host's Docker daemon (For build, run and push actions)
     environment:
-      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false  # No Jenkins setup wizard for faster startup
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false # No Jenkins setup wizard for faster startup
+
 
 volumes:
   jenkins_home:  # Defines a named volume for Jenkins data between container restarts
