@@ -1,0 +1,26 @@
+version: '3.8'  # file format version
+
+services:
+  # Calculator app service
+  calculator:
+    build: .  # Build the image from the Dockerfile 
+    volumes:
+      - ./:/app  # Mount the current directory to /app in the container
+    command: python -m pytest tests/ --junitxml=test-results.xml  # Command to run when the container starts (allows flexability)
+
+  # Jenkins service for CI/CD
+  jenkins:
+    image: jenkins/jenkins:lts  # Use the official Jenkins LTS image
+    privileged: true  # allows extended privileges
+    user: root  # Runs Jenkins as a root
+    ports:
+      - "8080:8080"  # container port 8080 to host port 8080 (Jenkins web UI)
+      - "50000:50000"  # container port 50000 to host port 50000 (Jenkins agent communication)
+    volumes:
+      - jenkins_home:/var/jenkins_home  # Persists Jenkins data using a named volume
+      - /var/run/docker.sock:/var/run/docker.sock  # Gives access to the host's Docker daemon (For build, run and push actions)
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false  # No Jenkins setup wizard for faster startup
+
+volumes:
+  jenkins_home:  # Defines a named volume for Jenkins data between container restarts
