@@ -1,30 +1,27 @@
 pipeline {
-    agent {
-        // Specify where pipeline will execute
-        docker {
-            image 'python:3.13-slim'  // execution environment
-        }
+    agent any  // run on the main node with Docker access
+
+    environment {
+        PYTHON_IMAGE = 'python:3.13-slim'
     }
-    
+
     stages {
-        stage('Setup') {
-            steps {
-                // Install Python dependencies
-                sh 'pip install -r requirements.txt'  // pip install packages from requirements.txt
-            }
-        }
-        
         stage('Test') {
             steps {
-                // Run the tests
-                sh 'python -m pytest tests/ --junitxml=test-results.xml'  // Runs pytest and generates XML output
+                // Run tests inside the Python container
+                script {
+                    docker.image(env.PYTHON_IMAGE).inside {
+                        sh 'pip install -r requirements.txt'
+                        sh 'python -m pytest tests/ --junitxml=test-results.xml'
+                    }
+                }
             }
             post {
                 always {
-                    junit 'test-results.xml'  // process and display the test results (always, even if fails)
+                    junit 'test-results.xml'
                 }
                 failure {
-                    echo 'UnitTests failed!'  
+                    echo 'UnitTests failed!'
                 }
             }
         }
