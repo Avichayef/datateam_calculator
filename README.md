@@ -4,13 +4,13 @@ This project contains a calculator application with an automated CI/CD pipeline 
 The setup includes containerized Jenkins with Docker capabilities and automated Python testing.
 
 ## Directory Structure
-app/                   # Calculator application
-tests/                 # Test files
-Dockerfile             # App Dockerfile
-Dockerfile.jenkins     # Jenkins Dockerfile (include plugins install)
-docker-compose.yml     # Services configuration
-Jenkinsfile            # Pipeline definition
-requirements.txt       # Python dependencies
+ - app/                   # Calculator application
+ - tests/                 # Test files
+ - Dockerfile             # App Dockerfile
+ - Dockerfile.jenkins     # Jenkins Dockerfile (include plugins install)
+ - docker-compose.yml     # Services configuration
+ - Jenkinsfile            # Pipeline definition
+ - requirements.txt       # Python dependencies
 
 ## Prerequisites
 
@@ -38,7 +38,7 @@ This will:
 - Configure Jenkins with root access for Docker operations
 
 3. Access Jenkins:
-- Open `http://localhost:8080` (or http://<VM IP>:8080) in browser
+- Open `http://localhost:8080` (or http://--VM IP--:8080) in browser
 - Jenkins is configured to skip the setup wizard (`jenkins.install.runSetupWizard=false`)
 
 ## Jenkins Configuration
