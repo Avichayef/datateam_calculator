@@ -1,43 +1,105 @@
+"""
+Calculator API Test:
 
-import unittest #import the unittest module
-from app.calculator import Calculator   #import the calculator module from the app package
+1. Basic endpoint availability and health checks
+2. Calculator operations functionality
+3. Error handling and edge cases
+4. Input validation
+5. Web interface availability
 
-class TestCalculator(unittest.TestCase):
-    #---Test cases for the Calculator class---
-    
+Usage:
+    python3 -m pytest tests/test_calculator.py
+"""
+
+import unittest
+from app.main import app
+import json
+
+class TestCalculatorAPI(unittest.TestCase):
+    """
+    Test suite for the Calculator API.
+        
+    """
+
     def setUp(self):
-        #Set up a Calculator instance for each test
-        self.calc = Calculator()
-    
-    def test_add(self):
-        #Test addition with positive and negative numbers
-        self.assertEqual(self.calc.add(3, 5), 8)
-        self.assertEqual(self.calc.add(-1, 1), 0)
-        self.assertEqual(self.calc.add(-1, -1), -2)
-    
-    def test_subtract(self):
-        #Test subtraction with differnt numbers
-        self.assertEqual(self.calc.subtract(10, 5), 5)
-        self.assertEqual(self.calc.subtract(5, 10), -5)
-        self.assertEqual(self.calc.subtract(-5, -10), 5)
-    
-    def test_multiply(self):
-        #Test multiplication with different numbers
-        self.assertEqual(self.calc.multiply(3, 5), 15)
-        self.assertEqual(self.calc.multiply(-2, 5), -10)
-        self.assertEqual(self.calc.multiply(-2, -5), 10)
-    
-    def test_divide(self):
-        #Test the division with different numbers
-        self.assertEqual(self.calc.divide(10, 2), 5)
-        self.assertEqual(self.calc.divide(10, 5), 2)
-        self.assertEqual(self.calc.divide(12, 3), 4)
-    
-    def test_divide_by_zero(self):
-        #Test division when dividing by zero
-        with self.assertRaises(ZeroDivisionError):
-            self.calc.divide(10, 0)
+        """
+        Set up test client before each test.
+        Creates a test client that can be used to make requests to the application.
+        """
+        self.app = app.test_client()
+        self.app.testing = True
+
+    def test_health_endpoint(self):
+        """
+        Test the health check endpoint.
+        
+        """
+        response = self.app.get('/health')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['status'], 'healthy')
+
+    def test_api_info(self):
+        """
+        Test the API information endpoint.
+
+        """
+        response = self.app.get('/api')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('endpoints', response.json)
+        self.assertIn('message', response.json)
+
+    def test_home_page(self):
+        """
+        Test the home page (web interface).
+        
+        """
+        response = self.app.get('/')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'<!DOCTYPE html>', response.data)
+
+    def test_calculate_operations(self):
+        """
+        Test all calculator operations.
+        
+        """
+        test_cases = [
+            {'a': 10, 'b': 5, 'operation': '+', 'expected': 15},
+            {'a': 10, 'b': 5, 'operation': '-', 'expected': 5},
+            {'a': 10, 'b': 5, 'operation': '*', 'expected': 50},
+            {'a': 10, 'b': 5, 'operation': '/', 'expected': 2},
+        ]
+
+        for test in test_cases:
+            response = self.app.post('/calculate', 
+                                   data=json.dumps({
+                                       'a': test['a'],
+                                       'b': test['b'],
+                                       'operation': test['operation']
+                                   }),
+                                   content_type='application/json')
+            
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json['result'], test['expected'])
+
+    def test_invalid_numbers(self):
+        """
+        Test handling of invalid numeric inputs.
+
+        """
+        test_cases = [
+            {'a': 'abc', 'b': 5, 'operation': '+'},
+            {'a': 10, 'b': 'def', 'operation': '-'},
+            {'a': None, 'b': 5, 'operation': '*'},
+            {'a': 10, 'b': None, 'operation': '/'}
+        ]
+
+        for test in test_cases:
+            response = self.app.post('/calculate',
+                                   data=json.dumps(test),
+                                   content_type='application/json')
+            
+            self.assertEqual(response.status_code, 400)
+            self.assertIn('error', response.json)
 
 if __name__ == '__main__':
     unittest.main()
-

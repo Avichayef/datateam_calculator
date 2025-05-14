@@ -16,4 +16,6 @@ COPY tests/ ./tests/
 ENV PYTHONPATH=/app
 
 # Run the app 
-CMD ["python", "app/main.py"]
+EXPOSE 5000
+ENV FLASK_APP=app/main.py
+CMD ["flask", "run", "--host=0.0.0.0"]
