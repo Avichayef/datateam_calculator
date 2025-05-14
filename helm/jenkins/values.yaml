@@ -1,8 +1,9 @@
 controller:
-  image: "jenkins-plugins"
-  tag: "latest"                    # Image tag
-  imagePullPolicy: IfNotPresent  # Use local image
-
+  image:
+    repository: "jenkins-plugins"  # Image name
+    tag: "latest"                 # Image tag
+    pullPolicy: IfNotPresent      # Use local image
+    
   serviceType: NodePort
   
   # Match docker-compose privileges
