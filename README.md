@@ -121,3 +121,59 @@ The pipeline uses:
 - Failed tests will mark the build as failed
 
 
+## ------------------------------------------------------------------------------------ ##
+
+## Helm Deployment
+
+### Prerequisites
+- Minikube installed and running
+- Helm installed
+- kubectl installed
+
+### Deployment Steps
+
+1. Start Minikube:
+```bash
+minikube start
+```
+
+2. Point to Minikube's Docker daemon:
+```bash
+eval $(minikube docker-env)
+```
+
+3. Build the Docker image:
+```bash
+docker build -t calculator:latest .
+```
+
+4. Deploy using Helm:
+```bash
+helm upgrade --install calculator ./helm/calculator
+```
+
+5. Verify deployment:
+```bash
+kubectl get pods
+kubectl get services
+```
+
+6. Access the application:
+```bash
+kubectl port-forward svc/calculator-calculator 5000:80
+```
+
+### Testing the Deployment
+
+1. Web Interface:
+   - Open http://localhost:5000 in browser
+   - Use the calculator interface
+
+2. API Endpoints:
+   - Health Check: `curl http://localhost:5000/health`
+   - Calculate: 
+     ```bash
+     curl -X POST http://localhost:5000/calculate \
+       -H "Content-Type: application/json" \
+       -d '{"a": 10, "b": 5, "operation": "+"}'
+     ```
