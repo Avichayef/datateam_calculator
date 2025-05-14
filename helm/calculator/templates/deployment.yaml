@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # deployment name
+  name: {{ .Release.Name }}-calculator
+spec:
+  # Number of pods to run
+  replicas: {{ .Values.replicaCount }}
+  # Pod selector config
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-calculator
+  # Template for creating pods
+  template:
+    metadata:
+      labels:
+        # Label that matches the selector above
+        app: {{ .Release.Name }}-calculator
+    spec:
+      containers:
+        # Container config
+        - name: calculator
+          # Image to use
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # Port the container exposes
+          ports:
+            - containerPort: 5000
+              name: http
+          # Health check configuration
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          # Resource limits and requests
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

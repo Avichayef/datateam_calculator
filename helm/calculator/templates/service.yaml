@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  # service name
+  name: {{ .Release.Name }}-calculator
+spec:
+  # service type
+  type: {{ .Values.service.type }}
+  ports:
+    # Port configuration
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      name: http
+  # Select pods with matching labels
+  selector:
+    app: {{ .Release.Name }}-calculator

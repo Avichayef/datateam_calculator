@@ -1,0 +1,41 @@
+# Number of pods replicas
+replicaCount: 1
+
+# Docker image config
+image:
+  # image name
+  repository: calculator
+  # image tag
+  tag: latest
+  pullPolicy: Never
+
+# Kubernetes service config
+service:
+  # ClusterIP for the app accessible within the cluster
+  type: ClusterIP
+  # Port that the service will listen on
+  port: 80
+  # Port where app is running in the container
+  targetPort: 5000
+
+# Container resource limits and requests
+resources:
+  # Maximum resources the container can use
+  limits:
+    cpu: 200m    # 200 millicpu (0.2 CPU)
+    memory: 256Mi
+  # Minimum resources the container needs
+  requests:
+    cpu: 100m    # 100 millicpu (0.1 CPU)
+    memory: 128Mi
+
+# Basic health check configuration
+livenessProbe:
+  # HTTP endpoint to check if the app is alive
+  httpGet:
+    path: /
+    port: 5000
+  # Wait 30 seconds before first check
+  initialDelaySeconds: 30
+  # Check every 10 seconds
+  periodSeconds: 10
