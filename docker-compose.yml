@@ -14,6 +14,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.jenkins
+    image: jenkins-plugins:latest  # image name
     container_name: jenkins  # Name of the container
     privileged: true  # allows extended privileges
     user: root  # Runs Jenkins as a root

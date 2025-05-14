@@ -1,30 +1,20 @@
 controller:
-  image:
-    repository: "jenkins/jenkins"  # Image name
-    tag: "lts"                    # Image tag
-    pullPolicy: IfNotPresent      # Pull policy
-  
-  installPlugins: false  
-  
+  image: "jenkins-plugins"
+  tag: "latest"                    # Image tag
+  imagePullPolicy: IfNotPresent  # Use local image
+
   serviceType: NodePort
   
   # Match docker-compose privileges
   runAsUser: 0
   runAsGroup: 0
   
-  # Security context to match docker-compose
-  containerSecurityContext:
-    runAsUser: 0
-    runAsGroup: 0
-    privileged: true
-    allowPrivilegeEscalation: true
-  
-  # Plugins from Dockerfile
-  additionalPlugins:
-    - git
-    - workflow-aggregator
-    - docker-workflow
-    - junit
+   # Add plugins
+  #additionalPlugins:
+  #  - git:latest
+  #  - workflow-aggregator:latest
+  #  - docker-workflow:latest
+  #  - junit:latest
 
   volumes:
     - type: hostPath

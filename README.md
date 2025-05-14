@@ -6,6 +6,7 @@ The setup includes containerized Jenkins with Docker capabilities and automated 
 ## Directory Structure
  - app/                   # Calculator application
  - tests/                 # Test files
+ - helm/                  # Helm deploy Jenkins and calculaor app
  - Dockerfile             # App Dockerfile
  - Dockerfile.jenkins     # Jenkins Dockerfile (include plugins install)
  - docker-compose.yml     # Services configuration
@@ -18,6 +19,7 @@ The setup includes containerized Jenkins with Docker capabilities and automated 
 - Git installed
 - Docker Hub account (for image pushing)
 
+###Docker-compose approach
 ## Jenkins Setup
 
 1. Clone this repository:
@@ -28,7 +30,7 @@ cd datateam_calculator
 
 2. Start Jenkins using Docker Compose:
 ```bash
-docker-compose up -d jenkins
+docker-compose up --build -d jenkins
 ```
 
 This will:
@@ -123,14 +125,118 @@ The pipeline uses:
 
 ## ------------------------------------------------------------------------------------ ##
 
-## Helm Deployment of app and of Jenkins
+## Alternative: Helm approach
 
 ### Prerequisites
 - Minikube installed and running
 - Helm installed
 - kubectl installed
 
-## Calculator
+
+### Jenkins
+## Deployment
+1. Start Minikube:
+```bash
+minikube start
+```
+
+2. Point to Minikube's Docker daemon:
+```bash
+eval $(minikube docker-env)
+```
+
+
+3. Check and Prepare Jenkins Image
+First, check if the Jenkins custom image already exists:
+```bash
+# Check if image exists locally
+if docker images | grep -q "jenkins-plugins.*latest"; then
+    echo "Using existing jenkins-plugins image"
+else
+    echo "Building jenkins-plugins image..."
+    docker-compose up --build -d jenkins
+fi
+
+# Load the image into minikube
+minikube image load jenkins-plugins:latest
+```
+
+4. Add Jenkins Helm Repository
+```bash
+helm repo add jenkins https://charts.jenkins.io
+helm repo update
+```
+
+5. Install Jenkins using Helm
+```bash
+helm install jenkins jenkins/jenkins -f helm/jenkins/values.yaml
+```
+6. Wait about 5 minutes for the service to establish
+for checking status:
+```bash
+kubectl get pods
+```
+
+## Getting Connection Details
+
+1. Get Minikube IP
+```bash
+export MINIKUBE_IP=$(minikube ip)
+echo "Minikube IP: $MINIKUBE_IP"
+```
+
+2. Get Jenkins NodePort
+```bash
+export JENKINS_PORT=$(kubectl get svc jenkins -o jsonpath='{.spec.ports[0].nodePort}')
+echo "Jenkins Port: $JENKINS_PORT"
+```
+
+3. Get VM's IP Address
+```bash
+# This will get the VM's IP address that's accessible from outside
+export VM_IP=$(hostname -I | awk '{print $1}')
+echo "VM IP: $VM_IP"
+```
+
+## Accessing Jenkins
+
+## From within the VM
+
+Jenkins can be accessed using the Minikube IP and NodePort:
+```bash
+curl http://$MINIKUBE_IP:$JENKINS_PORT
+```
+
+### From Windows or other external machines
+
+1. Allow the Jenkins port through the VM's firewall
+```bash
+sudo ufw allow $JENKINS_PORT
+```
+
+2. Set up port forwarding
+```bash
+kubectl port-forward --address 0.0.0.0 svc/jenkins $JENKINS_PORT:8080
+```
+
+3. Access Jenkins
+   - Open your browser
+   - Navigate to: `http://$VM_IP:$JENKINS_PORT`
+   - Keep the port-forward command running while accessing Jenkins
+
+## Jenkins Credentials
+
+- **Username**: admin
+- **Password**: Get the admin password by running:
+```bash
+kubectl get secret jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode
+```
+
+For the pipeline deployment, please see above (Jenkins Configuration).
+
+
+
+### Calculator
 ### Deployment Steps
 
 1. Start Minikube:
@@ -179,73 +285,3 @@ kubectl port-forward svc/calculator-calculator 5000:80
        -d '{"a": 10, "b": 5, "operation": "+"}'
      ```
 
-
-
-## Jenkins
-### Deployment
-1. **Start Minikube**
-   ```bash
-   minikube start
-   ```
-
-2. **Install Jenkins using Helm**
-   ```bash
-   helm install jenkins jenkins/jenkins
-   ```
-
-## Getting Connection Details
-
-1. **Get Minikube IP**
-   ```bash
-   export MINIKUBE_IP=$(minikube ip)
-   echo "Minikube IP: $MINIKUBE_IP"
-   ```
-
-2. **Get Jenkins NodePort**
-   ```bash
-   export JENKINS_PORT=$(kubectl get svc jenkins -o jsonpath='{.spec.ports[0].nodePort}')
-   echo "Jenkins Port: $JENKINS_PORT"
-   ```
-
-3. **Get VM's IP Address**
-   ```bash
-   # This will get the VM's IP address that's accessible from outside
-   export VM_IP=$(hostname -I | awk '{print $1}')
-   echo "VM IP: $VM_IP"
-   ```
-
-## Accessing Jenkins
-
-### From within the VM
-
-Jenkins can be accessed using the Minikube IP and NodePort:
-```bash
-curl http://$MINIKUBE_IP:$JENKINS_PORT
-```
-
-### From Windows or other external machines
-
-1. **Allow the Jenkins port through the VM's firewall**
-   ```bash
-   sudo ufw allow $JENKINS_PORT
-   ```
-
-2. **Set up port forwarding**
-   ```bash
-   kubectl port-forward --address 0.0.0.0 svc/jenkins $JENKINS_PORT:8080
-   ```
-
-3. **Access Jenkins**
-   - Open your browser
-   - Navigate to: `http://$VM_IP:$JENKINS_PORT`
-   - Keep the port-forward command running while accessing Jenkins
-
-## Jenkins Credentials
-
-- **Username**: admin
-- **Password**: Get the admin password by running:
-  ```bash
-  kubectl get secret jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode
-  ```
-
-For the pipeline deployment, please see above.
