@@ -1,0 +1,45 @@
+controller:
+  image:
+    repository: "jenkins/jenkins"  # Image name
+    tag: "lts"                    # Image tag
+    pullPolicy: IfNotPresent      # Pull policy
+  
+  installPlugins: false  
+  
+  serviceType: NodePort
+  
+  # Match docker-compose privileges
+  runAsUser: 0
+  runAsGroup: 0
+  
+  # Security context to match docker-compose
+  containerSecurityContext:
+    runAsUser: 0
+    runAsGroup: 0
+    privileged: true
+    allowPrivilegeEscalation: true
+  
+  # Plugins from Dockerfile
+  additionalPlugins:
+    - git
+    - workflow-aggregator
+    - docker-workflow
+    - junit
+
+  volumes:
+    - type: hostPath
+      hostPath: /var/run/docker.sock
+      mountPath: /var/run/docker.sock
+  
+  # Environment variables from docker-compose
+  javaOpts: "-Djenkins.install.runSetupWizard=false"
+
+persistence:
+  enabled: true
+  size: 10Gi
+
+agent:
+  enabled: true
+  
+serviceAccount:
+  create: true

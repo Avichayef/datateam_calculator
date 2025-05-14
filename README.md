@@ -123,13 +123,14 @@ The pipeline uses:
 
 ## ------------------------------------------------------------------------------------ ##
 
-## Helm Deployment
+## Helm Deployment of app and of Jenkins
 
 ### Prerequisites
 - Minikube installed and running
 - Helm installed
 - kubectl installed
 
+## Calculator
 ### Deployment Steps
 
 1. Start Minikube:
@@ -177,3 +178,74 @@ kubectl port-forward svc/calculator-calculator 5000:80
        -H "Content-Type: application/json" \
        -d '{"a": 10, "b": 5, "operation": "+"}'
      ```
+
+
+
+## Jenkins
+### Deployment
+1. **Start Minikube**
+   ```bash
+   minikube start
+   ```
+
+2. **Install Jenkins using Helm**
+   ```bash
+   helm install jenkins jenkins/jenkins
+   ```
+
+## Getting Connection Details
+
+1. **Get Minikube IP**
+   ```bash
+   export MINIKUBE_IP=$(minikube ip)
+   echo "Minikube IP: $MINIKUBE_IP"
+   ```
+
+2. **Get Jenkins NodePort**
+   ```bash
+   export JENKINS_PORT=$(kubectl get svc jenkins -o jsonpath='{.spec.ports[0].nodePort}')
+   echo "Jenkins Port: $JENKINS_PORT"
+   ```
+
+3. **Get VM's IP Address**
+   ```bash
+   # This will get the VM's IP address that's accessible from outside
+   export VM_IP=$(hostname -I | awk '{print $1}')
+   echo "VM IP: $VM_IP"
+   ```
+
+## Accessing Jenkins
+
+### From within the VM
+
+Jenkins can be accessed using the Minikube IP and NodePort:
+```bash
+curl http://$MINIKUBE_IP:$JENKINS_PORT
+```
+
+### From Windows or other external machines
+
+1. **Allow the Jenkins port through the VM's firewall**
+   ```bash
+   sudo ufw allow $JENKINS_PORT
+   ```
+
+2. **Set up port forwarding**
+   ```bash
+   kubectl port-forward --address 0.0.0.0 svc/jenkins $JENKINS_PORT:8080
+   ```
+
+3. **Access Jenkins**
+   - Open your browser
+   - Navigate to: `http://$VM_IP:$JENKINS_PORT`
+   - Keep the port-forward command running while accessing Jenkins
+
+## Jenkins Credentials
+
+- **Username**: admin
+- **Password**: Get the admin password by running:
+  ```bash
+  kubectl get secret jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode
+  ```
+
+For the pipeline deployment, please see above.
